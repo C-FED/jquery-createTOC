@@ -1,0 +1,20 @@
+.wrap-toc .toc-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 1rem 0;
+}
+
+.wrap-toc .toc-box .toc-item-link {
+    display: block;
+    padding: 4px 1rem;
+    color: #333;
+}
+
+.wrap-toc .toc-box .toc-item-link:hover {
+    background-color: #ebedef;
+}
+
+.wrap-toc .toc-box .toc-item.active .toc-item-link {
+    color: #007fff;
+    background-color: #ebedef;
+}
