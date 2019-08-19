@@ -42,8 +42,8 @@
         var wrapBox = document.createElement("div");
         wrapBox.className = "wrap-toc";
 
-        wrapBox.append(headBox);
-        wrapBox.append(tocBox);
+        wrapBox.appendChild(headBox);
+        wrapBox.appendChild(tocBox);
 
         var $insertBox = $(option.insert);
 
