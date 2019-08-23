@@ -1,4 +1,14 @@
 ; (function (window, $, undefined) {
+    // helpers
+    var IE_VERSION = (function () {
+        var v = 3, div = document.createElement('div'), all = div.getElementsByTagName('i');
+        while (
+            div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
+            all[0]
+        );
+        return v > 4 ? v : -1;
+    }());
+
 
     $.fn.createTOC = function (settings) {
         var option = $.extend({
@@ -58,6 +68,16 @@
         var offsetTop = $insertBox.offset().top;
         var marginTop = parseInt($insertBox.css('marginTop'));
         var offsetTopForView = offsetTop - scrollTop - marginTop;
+
+
+        // 兼容 ie8
+        if (IE_VERSION === 8) {
+            // 重新计算 offsetLeft
+            setTimeout(function () {
+                offsetLeft = $insertBox[0].offsetLeft; // 必须异步获取，同步获取有 bug
+                offsetLeftForView = offsetLeft - scrollLeft;
+            }, 1e3);
+        }
 
         // 滚动吸顶
         var ACTIVE_CLASS = 'active';
