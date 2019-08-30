@@ -1,15 +1,4 @@
 ; (function (window, $, undefined) {
-    // helpers
-    var IE_VERSION = (function () {
-        var v = 3, div = document.createElement('div'), all = div.getElementsByTagName('i');
-        while (
-            div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
-            all[0]
-        );
-        return v > 4 ? v : -1;
-    }());
-
-
     $.fn.createTOC = function (settings) {
         var option = $.extend({
             title: "目录",
@@ -56,35 +45,36 @@
         wrapBox.appendChild(tocBox);
 
         var $insertBox = $(option.insert);
+        var $helperBox = $("<div></div>");
+        $helperBox.append(wrapBox);
+        $insertBox.append($helperBox);
 
-        $insertBox.append(wrapBox);
-
-        var scrollLeft = $('html,body').scrollLeft();
-        var offsetLeft = $insertBox.offset().left;
-        var offsetLeftForView = offsetLeft - scrollLeft;
-        var insertBoxW = $insertBox.css('width');
+        // 存储容器盒子的样式
+        var CACHE_WIDTH = $insertBox.css('width');
+        var CACHE_PADDING_TOP = $insertBox.css('paddingTop');
+        var CACHE_PADDING_RIGHT = $insertBox.css('paddingRight');
+        var CACHE_PADDING_BOTTOM = $insertBox.css('paddingBottom');
+        var CACHE_PADDING_LEFT = $insertBox.css('paddingLeft');
+        var CACHE_MARGIN_TOP = $insertBox.css('marginTop');
 
         var scrollTop = $('html,body').scrollTop();
         var offsetTop = $insertBox.offset().top;
         var marginTop = parseInt($insertBox.css('marginTop'));
         var offsetTopForView = offsetTop - scrollTop - marginTop;
 
-
-        // 兼容 ie8
-        if (IE_VERSION === 8) {
-            // 重新计算 offsetLeft
-            setTimeout(function () {
-                offsetLeft = $insertBox[0].offsetLeft; // 必须异步获取，同步获取有 bug
-                offsetLeftForView = offsetLeft - scrollLeft;
-            }, 1e3);
-        }
-
         // 滚动吸顶
         var ACTIVE_CLASS = 'active';
 
         $(window).scroll(function () {
-            var scrollTop = $('html,body').scrollTop();
-            var isFixed = $insertBox.css("position") === "fixed";
+            // IE6/7/8： 
+            // 对于没有doctype声明的页面里可以使用  document.body.scrollTop 来获取 scrollTop高度 ； 
+            // 对于有doctype声明的页面则可以使用 document.documentElement.scrollTop； 
+            // Safari: 
+            // safari 比较特别，有自己获取scrollTop的函数 ： window.pageYOffset ； 
+            // Firefox: 
+            // 火狐等等相对标准些的浏览器就省心多了，直接用 document.documentElement.scrollTop
+            var scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
+            var isFixed = $helperBox.css("position") === "fixed";
 
             // 滚动高亮
             $.each(idList, function (index, id) {
@@ -104,15 +94,31 @@
             });
 
             if (scrollTop >= offsetTopForView) {
-                !isFixed && $insertBox.css({
-                    position: "fixed",
-                    top: 0,
-                    left: offsetLeftForView + 'px',
-                    width: insertBoxW,
+                if (isFixed) return;
+                $insertBox.css({
+                    padding: 0,
+                });
+                $helperBox.css({
+                    position: 'fixed',
+                    top: CACHE_MARGIN_TOP,
+                    width: CACHE_WIDTH,
+                    paddingTop: CACHE_PADDING_TOP,
+                    paddingRight: CACHE_PADDING_RIGHT,
+                    paddingBottom: CACHE_PADDING_BOTTOM,
+                    paddingLeft: CACHE_PADDING_LEFT,
+                    backgroundColor: $insertBox.css('backgroundColor')
                 });
             } else {
+                if (!isFixed) return;
+                $helperBox.css({
+                    position: 'static',
+                    padding: 0
+                });
                 $insertBox.css({
-                    position: "static",
+                    paddingTop: CACHE_PADDING_TOP,
+                    paddingRight: CACHE_PADDING_RIGHT,
+                    paddingBottom: CACHE_PADDING_BOTTOM,
+                    paddingLeft: CACHE_PADDING_LEFT,
                 });
             }
         });
