@@ -5,10 +5,13 @@
             insert: "body",
         }, settings);
 
+        var ACTIVE_CLASS = 'active';
+
         var list = ["h1", "h2", "h3", "h4", "h5", "h6"];
         var $headings = this.find(list.join(","));
 
         var tocBox = document.createElement("ul");
+        var $tocBox = $(tocBox);
         tocBox.className = "toc-box";
 
         var idList = [];
@@ -32,6 +35,20 @@
 
             row.appendChild(link);
             tocBox.appendChild(row);
+        });
+        // 控制高亮元素的接管权
+        var isTakeOverByClick = false;
+
+        // 事件委托，添加 click ，高亮当前点击项
+        $tocBox.on("click", ".toc-item", function (ev) {
+            // 设置为 true ，代表 点击事件 接管 高亮元素 的控制权
+            isTakeOverByClick = true;
+
+            var $item = $(this);
+            var $itemSiblings = $item.siblings();
+
+            $itemSiblings.removeClass(ACTIVE_CLASS);
+            $item.addClass(ACTIVE_CLASS);
         });
 
         var headBox = document.createElement("div");
@@ -63,7 +80,6 @@
         var offsetTopForView = offsetTop - scrollTop - marginTop;
 
         // 滚动吸顶
-        var ACTIVE_CLASS = 'active';
 
         $(window).scroll(function () {
             // IE6/7/8： 
@@ -77,7 +93,8 @@
             var isFixed = $helperBox.css("position") === "fixed";
 
             // 滚动高亮
-            $.each(idList, function (index, id) {
+            // 只有点击事件 取消接管 高亮元素 的控制权 时候， scroll 事件才能拥有 高亮元素 的控制权
+            !isTakeOverByClick && $.each(idList, function (index, id) {
                 var $head = $('#' + id);
                 var $item = $('[href="#' + id + '"]').parent();
                 var $itemSiblings = $item.siblings();
@@ -92,6 +109,8 @@
                 }
 
             });
+            // 设置为 false ，代表 点击事件 取消接管 高亮元素 的控制权
+            isTakeOverByClick = false;
 
             if (scrollTop >= offsetTopForView) {
                 if (isFixed) return;
